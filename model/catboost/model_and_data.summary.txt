@@ -1,0 +1,5 @@
+== keys ==
+['model', 'X_train', 'y_train', 'X_test', 'y_test']
+
+== feature_names (앞 100개) ==
+[]
