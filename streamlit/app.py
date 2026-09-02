@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-df = pd.read_csv('./../eda/data/merged_data.csv')
+df = pd.read_csv('../model/catboost/data/merged_data.csv')
 
 region_num = df['자치구_코드_명'].nunique()
 service_num = df['서비스_업종_코드_명'].nunique()
