@@ -1,0 +1,27 @@
+# 가상환경
+project_env/
+venv/
+venv_name/
+.venv/
+
+# Python 캐시
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# CatBoost 학습 로그
+catboost_info/
+
+# Optuna 등 임시 산출물
+*.optuna
+*.log
+
+# 임시 스크립트
+_tmp*.py
+
+# OS
+.DS_Store
+Thumbs.db
