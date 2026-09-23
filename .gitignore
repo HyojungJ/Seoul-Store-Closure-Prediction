@@ -32,3 +32,6 @@ _tmp*.py
 # OS
 .DS_Store
 Thumbs.db
+
+# 개인 포트폴리오 문서 (레포 제외)
+포트폴리오.md

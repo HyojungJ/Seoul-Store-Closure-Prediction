@@ -56,8 +56,9 @@ Seoul-Store-Closure-Prediction
 │   ├─ 01_EDA.ipynb            # 탐색적 데이터 분석
 │   ├─ 02_preprocessing.ipynb  # 누수 방지 피처 엔지니어링 (66피처)
 │   ├─ 03_regression_trial.ipynb  # 회귀 시도 → 분류 전환 근거
-│   ├─ 04_model_comparison.ipynb  # 5개 모델 비교
-│   └─ 05_catboost_final.ipynb    # CatBoost + Optuna 최종 모델
+│   ├─ 04_model_comparison.ipynb  # 트리·딥러닝 5종 비교
+│   ├─ 05_catboost_final.ipynb    # CatBoost + Optuna 최종 모델
+│   └─ 06_lstm_timeseries.ipynb   # 시계열 딥러닝 (LSTM / GRU) 비교
 │
 ├─ model
 │   └─ catboost                # 서비스용 학습 모델(pkl) + 인코더
@@ -119,7 +120,7 @@ Seoul-Store-Closure-Prediction
 - "몇 %인지"보다 "위험한지"가 유용 → **이진 분류로 전환**
 
 ### 04. 모델 비교
-동일한 train/val/test(66피처)로 5개 모델을 공정 비교했습니다.
+동일한 train/val/test(66피처)로 트리 계열 4종 + 딥러닝(TabNet) 5개 모델을 공정 비교했습니다.
 
 | 모델 | Accuracy | F1 | ROC-AUC |
 |------|----------|-----|---------|
@@ -136,6 +137,18 @@ Seoul-Store-Closure-Prediction
 - 최적 파라미터: `iterations=263, learning_rate=0.040, depth=7, l2_leaf_reg=6.17`
 - **최종 테스트: Accuracy 0.7127 / F1 0.6929 / ROC-AUC 0.7995**
 - Feature Importance, 혼동 행렬, ROC 곡선 시각화
+
+### 06. 시계열 딥러닝 (LSTM / GRU)
+- 04·05가 각 분기를 독립 샘플로 본 것과 달리, (자치구 × 업종)의 분기 흐름을 **시퀀스로 직접 입력**
+- 과거 5개 분기 `[t-5 … t-1]` → 다음 분기 폐업 위험 예측 (누수 없음), 타겟·분할은 04·05와 동일
+
+| 모델 | Accuracy | F1 | ROC-AUC |
+|------|----------|-----|---------|
+| CatBoost (기준) | 0.7127 | 0.6944 | **0.7955** |
+| GRU | 0.6997 | 0.6865 | 0.7787 |
+| LSTM | 0.7061 | 0.6832 | 0.7750 |
+
+→ 시퀀스 모델도 검증 AUC 0.80까지 도달했으나, 짧은 시퀀스(26분기)·이질적 범주형 데이터 특성상 **CatBoost가 근소하게 우위**. 데이터 규모·구조에 맞는 모델 선택의 중요성을 실측으로 확인
 
 ---
 
@@ -163,7 +176,7 @@ project_env\Scripts\activate
 pip install -r requirements.txt
 
 # 3. 분석 노트북 실행 (Jupyter 커널: Python (project_env))
-#    notebooks/00 → 05 순서로 실행
+#    notebooks/00 → 06 순서로 실행
 #    00을 실행하면 data/processed/의 전처리 결과가 생성됩니다.
 
 # 4. Streamlit 대시보드 실행
@@ -192,8 +205,8 @@ streamlit run app.py
 - **언어/환경**: Python 3.13, venv
 - **데이터**: pandas, numpy
 - **시각화**: matplotlib, seaborn, plotly
-- **ML**: scikit-learn, CatBoost, XGBoost, LightGBM
-- **DL**: TabNet (pytorch-tabnet)
+- **ML**: scikit-learn, CatBoost, XGBoost, LightGBM, RandomForest
+- **DL**: PyTorch (LSTM, GRU), TabNet (pytorch-tabnet)
 - **튜닝**: Optuna
 - **대시보드**: Streamlit
 - **직렬화**: joblib
@@ -216,3 +229,16 @@ streamlit run app.py
 
 낮아진 숫자를 그대로 두고 "왜 낮아졌는지"를 설명할 수 있는 것이,
 숫자만 높은 모델보다 훨씬 가치 있다고 생각합니다.
+
+### 시계열 딥러닝을 시도하며
+팀 때 다루지 못한 **시계열 딥러닝(LSTM / GRU)** 을 직접 붙여 보았습니다.
+분기 흐름을 시퀀스로 넣어 학습했고 검증 AUC는 0.80까지 올랐지만,
+테스트 성능은 CatBoost에 근소하게 못 미쳤습니다.
+
+- 원인을 데이터로 설명할 수 있었습니다 — 26분기라는 짧은 시퀀스, 작은 데이터 규모,
+  범주형이 섞인 이질적 피처 구조에서는 gradient boosting이 구조적으로 유리합니다.
+- 이 경험으로 **"최신·복잡한 기법이 항상 정답은 아니며, 데이터 특성에 맞는 모델을 선택하는 것"** 이
+  더 중요하다는 걸 실측으로 확인했습니다.
+
+결과가 기대에 못 미쳐도, 시도하고 그 이유를 근거로 해석하는 과정 자체가
+문제 해결 능력을 보여준다고 생각합니다.
