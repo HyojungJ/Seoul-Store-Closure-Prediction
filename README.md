@@ -1,5 +1,8 @@
 # 🏪 머신러닝·딥러닝 기반 서울시 매장 폐업률 예측 및 입지/리스크 관리 서비스
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8f6f925a-b64c-410d-99e3-436e8d6e059e" />
+
+
 서울시 상권 공공데이터를 기반으로 자치구·업종별 **폐업 위험도를 예측**하고,
 예비 창업자와 매장 운영자에게 데이터 기반 의사결정을 지원하는 서비스입니다.
 
@@ -137,6 +140,14 @@ Seoul-Store-Closure-Prediction
 - **최종 테스트: Accuracy 0.7127 / F1 0.6929 / ROC-AUC 0.7995**
 - Feature Importance, 혼동 행렬, ROC 곡선 시각화
 
+<img width="513" height="389" alt="image" src="https://github.com/user-attachments/assets/61df45de-2f55-4913-89e9-adc99fa184d5" />
+
+<img width="533" height="389" alt="image" src="https://github.com/user-attachments/assets/d4065cb6-fe6a-49e9-bac1-e996416c41b7" />
+
+<img width="533" height="389" alt="image" src="https://github.com/user-attachments/assets/86d2912f-2991-4586-a3ca-4be4cb112fff" />
+
+<img width="790" height="590" alt="image" src="https://github.com/user-attachments/assets/54d3a74e-7cba-4a3c-8362-288eed1da8f3" />
+
 ### 06. 시계열 딥러닝 (LSTM / GRU)
 - 04·05가 각 분기를 독립 샘플로 본 것과 달리, (자치구 × 업종)의 분기 흐름을 **시퀀스로 직접 입력**
 - 과거 5개 분기 `[t-5 … t-1]` → 다음 분기 폐업 위험 예측 (누수 없음), 타겟·분할은 04·05와 동일
@@ -162,26 +173,11 @@ Seoul-Store-Closure-Prediction
 > 서비스는 실사용 시나리오(자치구·업종 선택 → 해당 상권 최신 분기 데이터로 예측)에 맞춰
 > 별도의 CatBoost 모델(`model/catboost/model_and_data_encoded.pkl`)을 사용합니다.
 
+<img width="1920" height="893" alt="image" src="https://github.com/user-attachments/assets/c2d3c990-2d75-44d0-8e08-54f32bdb7443" />
+
+<img width="1920" height="881" alt="image" src="https://github.com/user-attachments/assets/004fb4be-9c75-40df-a718-e6feed2c1525" />
+
 ---
-
-## 🚀 실행 방법
-
-```bash
-# 1. 가상환경 생성 및 활성화 (Windows / Python 3.13)
-python -m venv project_env
-project_env\Scripts\activate
-
-# 2. 패키지 설치
-pip install -r requirements.txt
-
-# 3. 분석 노트북 실행 (Jupyter 커널: Python (project_env))
-#    notebooks/00 → 06 순서로 실행
-#    00을 실행하면 data/processed/의 전처리 결과가 생성됩니다.
-
-# 4. Streamlit 대시보드 실행
-cd streamlit
-streamlit run app.py
-```
 
 ### 데이터 & 모델 파일 안내
 
