@@ -15,12 +15,14 @@ __pycache__/
 # CatBoost 학습 로그
 catboost_info/
 
+# 모델 산출물 디렉토리 (용량/재현성 문제로 저장소에서 제외)
+model/
+
+# 데이터 디렉토리 (용량 문제로 저장소에서 제외, 원본은 서울 열린데이터광장 참조)
+data/
+
 # 대용량 학습 모델 바이너리 (용량 문제로 저장소에서 제외)
 *.pkl
-
-# 노트북 실행으로 재생성되는 산출물 (raw 데이터는 유지)
-data/processed/
-model/catboost/data/
 
 # Optuna 등 임시 산출물
 *.optuna
