@@ -19,8 +19,12 @@ catboost_info/
 *.pkl
 
 # 노트북 실행으로 재생성되는 산출물 (raw 데이터는 유지)
+data/eda/
 data/processed/
 model/catboost/data/
+
+# 모델 요약 텍스트 (pkl 산출물의 메타 정보)
+*.summary.txt
 
 # Optuna 등 임시 산출물
 *.optuna
