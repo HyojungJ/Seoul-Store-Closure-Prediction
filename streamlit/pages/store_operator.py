@@ -4,13 +4,13 @@ import pandas as pd
 import numpy as np
 import joblib
 import plotly.graph_objects as go
+import sys
 from pathlib import Path
 from typing import Optional
 
-# 프로젝트 루트 기준 경로 (실행 위치와 무관하게 동작)
-ROOT = Path(__file__).resolve().parents[2]
-DATA_PATH = ROOT / 'data' / 'processed' / 'merged_data.csv'  # notebooks/00_data_merge 산출물
-MODEL_PATH = ROOT / 'model' / 'catboost' / 'model_and_data_encoded.pkl'
+# 대시보드 공용 예측 서비스 (streamlit/model_service.py)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from model_service import DATA_PATH, load_prediction_service, predict_closure_risk  # noqa: E402
 
 # ==================== 페이지 설정/스타일 ====================
 st.set_page_config(
@@ -242,21 +242,6 @@ def load_merged_data():
     except Exception as e:
         st.error(f"데이터 로드 실패: {str(e)}")
         return None
-
-@st.cache_resource
-def load_model_and_encoders():
-    try:
-        data = joblib.load(MODEL_PATH)
-        return (
-            data['model'],
-            data['district_encoder'],
-            data['industry_encoder'],
-            data['sanggwon_encoder'],
-            data.get('feature_names', [])
-        )
-    except Exception as e:
-        st.error(f"모델 로드 실패: {str(e)}")
-        return None, None, None, None, []
 
 def get_district_industry_data(df, district, industry):
     filtered = df[(df['자치구_코드_명'] == district) & (df['서비스_업종_코드_명'] == industry)]
@@ -610,8 +595,8 @@ if 'risk_score' not in st.session_state:
 # ==================== 예측 버튼 ====================
 if st.button("폐업 위험도 예측하기"):
     with st.spinner("AI가 데이터를 분석하고 있습니다..."):
-        model, district_encoder, industry_encoder, sanggwon_encoder, feature_names = load_model_and_encoders()
-        if model is None:
+        service = load_prediction_service()
+        if service is None:
             st.error("모델을 불러올 수 없습니다. 관리자에게 문의하세요.")
             st.stop()
 
@@ -622,34 +607,15 @@ if st.button("폐업 위험도 예측하기"):
 
         stats = calculate_statistics(row_data)
 
-        # 예측용 입력: 임대료만 반영 (매출/요일/시간 미반영 유지)
-        input_data = row_data.copy()
-        if '전체임대료' in input_data:
-            input_data['전체임대료'] = rent
-        elif '임대료' in input_data:
-            input_data['임대료'] = rent
-
-        # 인코딩
+        # 예측: 마지막 관측 분기(t-1)·직전 분기(t-2) 데이터로 다음 분기 폐업 위험 예측
+        #       입력 임대료는 최근 임대료로 반영 (매출/요일/시간 입력은 예측에 미반영)
         try:
-            input_data['자치구_코드_명'] = district_encoder.transform([selected_district])[0]
-            input_data['서비스_업종_코드_명'] = industry_encoder.transform([selected_industry])[0]
-            input_data['상권_변화_지표'] = sanggwon_encoder.transform([input_data['상권_변화_지표']])[0]
-        except Exception as e:
-            st.error(f"인코딩 오류: {str(e)}")
-            st.stop()
-
-        # 불필요 컬럼 제거(학습 제외 컬럼)
-        drop_cols = ['기준_년분기_코드', '폐업_점포_수', '폐업_영업_개월_평균', '서울시_폐업_영업_개월_평균', '폐업_률']
-        input_df = pd.DataFrame([input_data])
-        X_input = input_df.drop(columns=[c for c in drop_cols if c in input_df.columns], errors='ignore')
-
-        # 예측
-        try:
-            prediction_proba = model.predict_proba(X_input)[:, 1][0]
-            risk_score = float(prediction_proba) * 100
+            prediction_proba, predicted_quarter = predict_closure_risk(
+                service, selected_district, selected_industry, rent
+            )
+            risk_score = prediction_proba * 100
         except Exception as e:
             st.error(f"예측 오류: {str(e)}")
-            st.error(f"입력 피처 개수: {len(X_input.columns)}")
             st.stop()
 
         # SessionState 저장 (+ 이식된 비교/통계 전부)
