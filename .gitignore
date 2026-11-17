@@ -17,6 +17,8 @@ catboost_info/
 
 # 대용량 학습 모델 바이너리 (용량 문제로 저장소에서 제외)
 *.pkl
+# 대시보드용 최종 모델은 포함 (0.7MB, notebooks/05_catboost_final 산출물)
+!model/catboost/closure_model.pkl
 
 # 노트북 실행으로 재생성되는 산출물 (raw 데이터는 유지)
 data/eda/
